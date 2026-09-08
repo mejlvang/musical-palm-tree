@@ -63,3 +63,16 @@ See the [evaluator documentation](./docs/evaluator.md) for usage, arguments, eva
 
 In this repository we aim to have an application residing in the src folder. Here you can find a description of it and functional requirements.
 
+## Running locally
+
+The McSquishy application requires Node.js 20.19 or newer. Install dependencies and use the following commands from the repository root:
+
+```bash
+npm install
+npm run dev
+npm run build
+npm test
+npm run typecheck
+```
+
+`npm run dev` starts the Vite development server. The build, test, and typecheck commands run without requiring network or cloud services.
