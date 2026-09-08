@@ -10,12 +10,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run && node --experimental-strip-types --test src/input/keyboard-input.test.ts src/game/stateMachine.test.ts",
+    "test": "vitest run src/placeholder.test.ts && node --import tsx --test $(find src -name '*.test.ts' ! -name 'placeholder.test.ts')",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "5.9.2",
+    "tsx": "^4.23.12",
     "vite": "7.1.5",
     "vitest": "3.2.4"
   }
