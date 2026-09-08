@@ -1,28 +1,38 @@
-import type { InputState } from "./physics";
+export const INPUT_MAPPING = {
+  left: ["ArrowLeft", "a"],
+  right: ["ArrowRight", "d"],
+  jump: ["ArrowUp", "w", " "],
+  pause: ["Escape", "p"],
+  start: ["Enter", " "],
+  restart: ["Enter", " "],
+} as const;
 
-export function createInput(element: Window = window): {
-  getState: () => InputState;
-  dispose: () => void;
-} {
-  const keys = new Set<string>();
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (["ArrowLeft", "ArrowRight", "a", "d", " ", "w", "ArrowUp"].includes(event.key)) {
-      event.preventDefault();
-      keys.add(event.key);
-    }
-  };
-  const onKeyUp = (event: KeyboardEvent) => keys.delete(event.key);
-  element.addEventListener("keydown", onKeyDown);
-  element.addEventListener("keyup", onKeyUp);
-  return {
-    getState: () => ({
-      moveLeft: keys.has("ArrowLeft") || keys.has("a"),
-      moveRight: keys.has("ArrowRight") || keys.has("d"),
-      jump: keys.has(" ") || keys.has("w") || keys.has("ArrowUp"),
-    }),
-    dispose: () => {
-      element.removeEventListener("keydown", onKeyDown);
-      element.removeEventListener("keyup", onKeyUp);
+export type InputAction = keyof typeof INPUT_MAPPING;
+
+export function keysForAction(action: InputAction): readonly string[] {
+  return INPUT_MAPPING[action];
+}
+
+export function instructions(): ReadonlyArray<{
+  action: string;
+  keys: string;
+}> {
+  const displayKeys = (action: InputAction): string =>
+    keysForAction(action)
+      .map((key) => (key === " " ? "Space" : key))
+      .join(" / ");
+
+  return [
+    {
+      action: "Move",
+      keys: `${displayKeys("left")} / ${displayKeys("right")}`,
     },
-  };
+    { action: "Jump", keys: displayKeys("jump") },
+    { action: "Pause", keys: displayKeys("pause") },
+  ];
+}
+
+export function isActionKey(action: InputAction, key: string): boolean {
+  const mappedKeys: readonly string[] = INPUT_MAPPING[action];
+  return mappedKeys.includes(key);
 }

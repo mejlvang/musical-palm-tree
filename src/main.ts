@@ -1,30 +1,61 @@
-import { createInput } from "./game/input";
-import { testSolids } from "./game/level";
-import { update, type PlayerState } from "./game/physics";
-import { render } from "./game/renderer";
+import { isActionKey } from "./game/input";
+import { createGameStateMachine } from "./game/stateMachine";
+import { renderGame } from "./game/ui";
+import type { GameStateMachine } from "./game/stateMachine";
 
-const canvas = document.querySelector<HTMLCanvasElement>("#game");
-if (!canvas) throw new Error("Game canvas was not found");
-const context = canvas.getContext("2d");
-if (!context) throw new Error("2D canvas context is unavailable");
-const gameContext = context;
+export function createGameApp(container: HTMLElement): {
+  stateMachine: GameStateMachine;
+  destroy(): void;
+} {
+  const stateMachine = createGameStateMachine();
+  const actions = {
+    start: () => stateMachine.transition("start"),
+    pause: () => stateMachine.transition("pause"),
+    resume: () => stateMachine.transition("resume"),
+    restart: () => stateMachine.transition("restart"),
+  };
 
-const input = createInput();
-let player: PlayerState = {
-  position: { x: 80, y: 330 },
-  velocity: { x: 0, y: 0 },
-  width: 32,
-  height: 40,
-  grounded: false,
-};
-let previousTime = 0;
+  const render = (state = stateMachine.state) =>
+    renderGame(container, state, actions);
+  const unsubscribe = stateMachine.subscribe(render);
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (isActionKey("start", event.key) && stateMachine.state === "start") {
+      event.preventDefault();
+      actions.start();
+    } else if (
+      isActionKey("pause", event.key) &&
+      stateMachine.state === "playing"
+    ) {
+      event.preventDefault();
+      actions.pause();
+    } else if (
+      isActionKey("pause", event.key) &&
+      stateMachine.state === "paused"
+    ) {
+      event.preventDefault();
+      actions.resume();
+    } else if (
+      isActionKey("restart", event.key) &&
+      (stateMachine.state === "gameOver" ||
+        stateMachine.state === "levelCompleted")
+    ) {
+      event.preventDefault();
+      actions.restart();
+    }
+  };
 
-function frame(time: number): void {
-  const dt = previousTime === 0 ? 0 : (time - previousTime) / 1000;
-  previousTime = time;
-  player = update(player, input.getState(), dt, testSolids);
-  render(gameContext, player, testSolids);
-  requestAnimationFrame(frame);
+  document.addEventListener("keydown", onKeyDown);
+  render();
+  return {
+    stateMachine,
+    destroy() {
+      unsubscribe();
+      document.removeEventListener("keydown", onKeyDown);
+    },
+  };
 }
 
-requestAnimationFrame(frame);
+const root = document.querySelector<HTMLElement>("#game");
+if (root) {
+  createGameApp(root);
+}
