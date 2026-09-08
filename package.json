@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run && node --experimental-strip-types --test src/input/keyboard-input.test.ts",
+    "test": "vitest run && node --experimental-strip-types --test src/input/keyboard-input.test.ts src/game/stateMachine.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
